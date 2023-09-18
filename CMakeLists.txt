@@ -4,7 +4,7 @@ project(XVisioStreamer)
 set(CMAKE_CXX_STANDARD 14)
 
 IF(NOT CMAKE_BUILD_TYPE)
-  SET(CMAKE_BUILD_TYPE DEBUG)
+  SET(CMAKE_BUILD_TYPE Debug)
 ENDIF()
 
 find_package(OpenCV  REQUIRED)
@@ -12,14 +12,17 @@ find_package(Boost COMPONENTS filesystem serialization REQUIRED)
 find_package(Threads REQUIRED)
 find_package(xvsdk REQUIRED)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Og ")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Og ")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 ")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 ")
 
 
 add_library(xvisio
+   include/SLAMFrame.h
    src/tick.cc
    src/XVisio.cc
    src/AtomicTimestampOffset.cc
+   src/XVisioStreamServer.cc
+   src/XVisioStreamClient.cc
 )
 
 target_include_directories(xvisio
@@ -42,6 +45,18 @@ add_executable(XVisioStreamer
 )
 
 target_link_libraries(XVisioStreamer
+   PRIVATE xvisio
+   PRIVATE Boost::boost
+   PRIVATE Boost::filesystem
+   PRIVATE Boost::serialization
+   PRIVATE Threads::Threads
+)
+
+add_executable(XVisioStreamReceiver
+	src/XVisioStreamReceiver.cc
+)
+
+target_link_libraries(XVisioStreamReceiver
    PRIVATE xvisio
    PRIVATE Boost::boost
    PRIVATE Boost::filesystem

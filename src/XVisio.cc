@@ -20,9 +20,13 @@ XVisio::XVisio(XVisio::Settings settings)
         exit(1);
     }
 
+    imu_tick.set_rate(2000);
+    frame_tick.set_rate(100);
+
     imu_callback_id = device->imuSensor()->registerCallback([this](xv::Imu const &imu)
     {
         if((imu.edgeTimestampUs - prev_imu) >= 500){
+            imu_tick.tick();
             double timestamp = static_cast<double>(t_off.get(imu.edgeTimestampUs)) / 1e6;
             IMU_Point p(
                 imu.accel[0], imu.accel[1], imu.accel[2],
@@ -40,8 +44,9 @@ XVisio::XVisio(XVisio::Settings settings)
 
     fisheye_callback_id = device->fisheyeCameras()->registerCallback([this](xv::FisheyeImages const &stereo)
     {
-        if((stereo.edgeTimestampUs - prev_fisheye) >= 40000)
+        if((stereo.edgeTimestampUs - prev_fisheye) >= 10000)
         {
+            frame_tick.tick();
             XVisioStreamable image;
             image.timestamp = static_cast<double>(t_off.get(stereo.edgeTimestampUs)) / 1e6;
             image.is_image = true;
